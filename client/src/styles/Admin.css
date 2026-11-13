@@ -1,0 +1,87 @@
+.admin-page {
+  min-height: 100vh;
+  background: #050505;
+  color: #fff;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.admin-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.admin-header h1 {
+  margin: 0;
+  background: linear-gradient(90deg, #b44cff, #00e5ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.admin-back {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+.admin-card {
+  background: #0d0d12;
+  border: 1px solid rgba(180, 76, 255, 0.4);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 0 20px rgba(180, 76, 255, 0.15);
+}
+
+.admin-card h2 {
+  margin-top: 0;
+}
+
+.admin-scroll {
+  overflow-x: auto;
+}
+
+.admin-card table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.admin-card th,
+.admin-card td {
+  text-align: left;
+  padding: 10px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-card small {
+  opacity: 0.7;
+}
+
+.admin-error {
+  color: #ffb4c8;
+}
+
+.admin-btn {
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: #14141c;
+  color: #fff;
+  cursor: pointer;
+}
+
+.admin-btn.danger {
+  background: #ff3b6b;
+  border: none;
+  font-weight: 700;
+}
