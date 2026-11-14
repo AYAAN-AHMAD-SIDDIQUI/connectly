@@ -153,4 +153,19 @@
 .profile-card button[type="submit"]:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}.legal-note {
+  margin: 0 0 16px;
+  color: var(--text-faint, #7a7a7a);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.legal-note a {
+  color: var(--accent, #f43f5e);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.legal-note a:hover {
+  color: var(--accent-hover, #fb5b78);
 }

@@ -12,6 +12,7 @@ import Profile from "./pages/Profile";
 import Home from "./pages/Home";
 import Call from "./pages/Call";
 import Admin from "./pages/Admin";
+import Legal from "./pages/Legal";
 
 function App() {
   return (
@@ -24,6 +25,8 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/call" element={<Call />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/terms" element={<Legal type="terms" />} />
+          <Route path="/privacy" element={<Legal type="privacy" />} />
           <Route path="/" element={<Home />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { saveProfile } from "../services/authService";
 import "../styles/Profile.css";
 
@@ -143,6 +143,18 @@ function Profile() {
             <span>I confirm that I am 18 years or older.</span>
           </label>
         )}
+
+        <p className="legal-note">
+          By continuing, you agree to our{" "}
+          <Link to="/terms" target="_blank" rel="noopener noreferrer">
+            Terms &amp; Conditions
+          </Link>{" "}
+          and{" "}
+          <Link to="/privacy" target="_blank" rel="noopener noreferrer">
+            Privacy Policy
+          </Link>
+          .
+        </p>
 
         {error && <p className="profile-error">{error}</p>}
 
