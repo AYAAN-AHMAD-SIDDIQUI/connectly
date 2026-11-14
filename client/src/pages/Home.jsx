@@ -1,21 +1,43 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Video,
-  LogOut,
-  ArrowRight,
-  Users,
-  Ban,
-  BadgeCheck,
   MessageCircle,
+  Users,
+  LogOut,
+  ShieldCheck,
+  Video,
+  ArrowRight,
+  Ban,
+  Flag,
+  BadgeCheck,
   Lock,
-  Check,
+  Sparkles,
 } from "lucide-react";
 import "../styles/Home.css";
+
+const PHRASES = [
+  "someone new",
+  "a new friend",
+  "a real conversation",
+  "your next chat",
+];
 
 function Home() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [phraseIndex, setPhraseIndex] = useState(0);
+
+  // Floating particles: fixed values so they do not jump on re-render
+  const particles = useMemo(
+    () =>
+      Array.from({ length: 16 }, (_, i) => ({
+        left: (i * 37) % 100,
+        size: 4 + (i % 4) * 2,
+        delay: (i * 0.9) % 8,
+        duration: 9 + (i % 5) * 2,
+      })),
+    []
+  );
 
   useEffect(() => {
     const token = localStorage.getItem("connectly_token");
@@ -46,10 +68,31 @@ function Home() {
     setUser(parsedUser);
   }, [navigate]);
 
+  // Rotate the headline phrase every 2.5 seconds
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setPhraseIndex((i) => (i + 1) % PHRASES.length);
+    }, 2500);
+    return () => clearInterval(timer);
+  }, []);
+
   const handleLogout = () => {
     localStorage.removeItem("connectly_token");
     localStorage.removeItem("connectly_user");
     navigate("/login");
+  };
+
+  // Soft glow that follows the mouse
+  const handlePageMove = (e) => {
+    e.currentTarget.style.setProperty("--mx", `${e.clientX}px`);
+    e.currentTarget.style.setProperty("--my", `${e.clientY}px`);
+  };
+
+  // Spotlight inside a card that follows the mouse
+  const handleCardMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    e.currentTarget.style.setProperty("--x", `${e.clientX - rect.left}px`);
+    e.currentTarget.style.setProperty("--y", `${e.clientY - rect.top}px`);
   };
 
   if (!user) return null;
@@ -58,161 +101,210 @@ function Home() {
   const initial = shownName.charAt(0).toUpperCase();
 
   return (
-    <div className="hm-page">
-      <header className="hm-nav">
+    <main className="hm-page" onMouseMove={handlePageMove}>
+      <div className="hm-glow hm-glow-purple" />
+      <div className="hm-glow hm-glow-cyan" />
+      <div className="hm-glow hm-glow-pink" />
+
+      <div className="hm-particles" aria-hidden="true">
+        {particles.map((p, i) => (
+          <span
+            key={i}
+            style={{
+              left: `${p.left}%`,
+              width: p.size,
+              height: p.size,
+              animationDelay: `${p.delay}s`,
+              animationDuration: `${p.duration}s`,
+            }}
+          />
+        ))}
+      </div>
+
+      <header className="hm-header hm-reveal">
         <div className="hm-brand">
-          <span className="hm-logo">
-            <Video size={18} />
+          <span className="hm-brand-icon">
+            <MessageCircle size={20} />
           </span>
           <span>Connectly</span>
         </div>
 
-        <div className="hm-nav-right">
-          <div className="hm-user">
-            <span className="hm-avatar-xs">{initial}</span>
-            <span className="hm-user-name">{shownName}</span>
-          </div>
-          <button className="hm-ghost-btn" onClick={handleLogout}>
-            <LogOut size={16} />
-            Logout
-          </button>
-        </div>
+        <button className="hm-logout" onClick={handleLogout}>
+          <LogOut size={16} />
+          Logout
+        </button>
       </header>
 
-      <main className="hm-container">
-        <section className="hm-hero">
-          <div className="hm-hero-text">
-            <span className="hm-eyebrow">
-              <span className="hm-dot" />
-              Live video chat
+      <section className="hm-hero">
+        <div className="hm-hero-text">
+          <span className="hm-pill hm-reveal" style={{ "--d": "0.1s" }}>
+            <span className="hm-live-dot" />
+            <Sparkles size={14} />
+            Live video chat
+          </span>
+
+          <h1 className="hm-reveal" style={{ "--d": "0.2s" }}>
+            Hey <span className="hm-gradient">{shownName}</span>,
+            <br />
+            ready to meet{" "}
+            <span key={phraseIndex} className="hm-phrase hm-gradient">
+              {PHRASES[phraseIndex]}
             </span>
+            ?
+          </h1>
 
-            <h1>
-              Meet someone new,
-              <br />
-              <span className="hm-accent">face to face.</span>
-            </h1>
+          <p className="hm-reveal" style={{ "--d": "0.3s" }}>
+            Jump into a video call with a real person. One tap, no
+            waiting rooms, and you can skip anytime.
+          </p>
 
-            <p className="hm-lead">
-              One-on-one video conversations with real people. Start with a
-              single tap, and skip, block or report at any time.
-            </p>
+          <button
+            className="hm-cta hm-reveal"
+            style={{ "--d": "0.4s" }}
+            onClick={() => navigate("/call")}
+          >
+            <Video size={22} />
+            Start video call
+            <ArrowRight size={20} />
+          </button>
 
-            <button className="hm-cta" onClick={() => navigate("/call")}>
-              <Video size={20} />
-              Start video call
-              <ArrowRight size={18} />
-            </button>
-
-            <p className="hm-hint">
-              Camera and microphone access is requested when you start.
-            </p>
+          <div className="hm-badges hm-reveal" style={{ "--d": "0.5s" }}>
+            <span>
+              <BadgeCheck size={15} /> 18+ only
+            </span>
+            <span>
+              <Users size={15} /> Opposite-gender matching
+            </span>
+            <span>
+              <Ban size={15} /> Block &amp; report
+            </span>
           </div>
+        </div>
 
-          <aside className="hm-panel">
-            <div className="hm-panel-top">
-              <span className="hm-avatar">{initial}</span>
-              <div>
-                <h3>{shownName}</h3>
-                <span className="hm-badge">{user.gender}</span>
-              </div>
+        <div
+          className="hm-preview hm-reveal"
+          style={{ "--d": "0.4s" }}
+          aria-hidden="true"
+        >
+          <div className="hm-preview-card">
+            <div className="hm-avatar hm-avatar-you hm-float">{initial}</div>
+
+            <div className="hm-link">
+              <span className="hm-ring" />
+              <span className="hm-ring hm-ring-delay" />
+              <Video size={22} />
             </div>
 
-            <p className="hm-bio">{user.bio || "No bio added yet."}</p>
-
-            <ul className="hm-checks">
-              <li>
-                <Check size={16} /> Profile completed
-              </li>
-              <li>
-                <Check size={16} /> Age confirmed (18+)
-              </li>
-              <li>
-                <Check size={16} /> Ready to match
-              </li>
-            </ul>
-          </aside>
-        </section>
-
-        <section className="hm-section">
-          <h2>How it works</h2>
-          <div className="hm-grid-3">
-            <div className="hm-card">
-              <span className="hm-num">1</span>
-              <h3>Tap start</h3>
-              <p>Allow your camera and mic, and we begin looking for a match.</p>
-            </div>
-            <div className="hm-card">
-              <span className="hm-num">2</span>
-              <h3>Get matched</h3>
-              <p>You are paired with someone of the opposite gender.</p>
-            </div>
-            <div className="hm-card">
-              <span className="hm-num">3</span>
-              <h3>Talk or move on</h3>
-              <p>Not a fit? Skip to the next person in one tap.</p>
+            <div className="hm-avatar hm-avatar-them hm-float hm-float-late">
+              ?
             </div>
           </div>
-        </section>
+          <p className="hm-preview-text">
+            Finding your match
+            <span className="hm-dots">
+              <i />
+              <i />
+              <i />
+            </span>
+          </p>
+        </div>
+      </section>
 
-        <section className="hm-section">
-          <h2>Built with safety in mind</h2>
-          <div className="hm-grid-3">
-            <div className="hm-card">
-              <span className="hm-icon">
-                <BadgeCheck size={20} />
-              </span>
-              <h3>18+ only</h3>
-              <p>Every member confirms their age before they can match.</p>
+      <section className="hm-steps">
+        <h2 className="hm-reveal" style={{ "--d": "0.5s" }}>
+          How it works
+        </h2>
+        <div className="hm-steps-grid">
+          <div
+            className="hm-step hm-card-fx hm-reveal"
+            style={{ "--d": "0.6s" }}
+            onMouseMove={handleCardMove}
+          >
+            <span className="hm-step-num">1</span>
+            <h3>Tap Start</h3>
+            <p>Allow camera and mic, then we look for someone for you.</p>
+          </div>
+          <div
+            className="hm-step hm-card-fx hm-reveal"
+            style={{ "--d": "0.7s" }}
+            onMouseMove={handleCardMove}
+          >
+            <span className="hm-step-num">2</span>
+            <h3>Get matched</h3>
+            <p>You are paired with someone of the opposite gender.</p>
+          </div>
+          <div
+            className="hm-step hm-card-fx hm-reveal"
+            style={{ "--d": "0.8s" }}
+            onMouseMove={handleCardMove}
+          >
+            <span className="hm-step-num">3</span>
+            <h3>Talk or skip</h3>
+            <p>Not feeling it? Skip, block or report in one tap.</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="hm-cards">
+        <div
+          className="hm-card hm-card-fx hm-profile hm-reveal"
+          style={{ "--d": "0.9s" }}
+          onMouseMove={handleCardMove}
+        >
+          <div className="hm-profile-top">
+            <div className="hm-avatar hm-avatar-you hm-avatar-sm">
+              {initial}
             </div>
-            <div className="hm-card">
-              <span className="hm-icon">
-                <Users size={20} />
-              </span>
-              <h3>Opposite-gender matching</h3>
-              <p>Matches are always between a man and a woman.</p>
-            </div>
-            <div className="hm-card">
-              <span className="hm-icon">
-                <Ban size={20} />
-              </span>
-              <h3>Block and report</h3>
-              <p>Blocked people never match with you again. Reports are reviewed.</p>
+            <div>
+              <h3>{shownName}</h3>
+              <span className="hm-gender">{user.gender}</span>
             </div>
           </div>
-        </section>
+          <p className="hm-bio">{user.bio || "No bio added yet."}</p>
+          <span className="hm-status">
+            <ShieldCheck size={14} /> Profile completed
+          </span>
+        </div>
 
-        <section className="hm-section">
-          <h2>Coming soon</h2>
-          <div className="hm-grid-2">
-            <div className="hm-card hm-muted">
-              <span className="hm-icon">
-                <Users size={20} />
-              </span>
-              <h3>Connections</h3>
-              <p>Stay in touch with people you click with.</p>
-              <span className="hm-tag">
-                <Lock size={12} /> Coming soon
-              </span>
-            </div>
-            <div className="hm-card hm-muted">
-              <span className="hm-icon">
-                <MessageCircle size={20} />
-              </span>
-              <h3>Messages</h3>
-              <p>Private conversations with your connections.</p>
-              <span className="hm-tag">
-                <Lock size={12} /> Coming soon
-              </span>
-            </div>
+        <div
+          className="hm-card hm-card-fx hm-soon hm-reveal"
+          style={{ "--d": "1s" }}
+          onMouseMove={handleCardMove}
+        >
+          <div className="hm-card-icon">
+            <Users size={22} />
           </div>
-        </section>
-      </main>
+          <h3>Your Connections</h3>
+          <p>Stay in touch with people you click with.</p>
+          <span className="hm-tag">
+            <Lock size={12} /> Coming soon
+          </span>
+        </div>
+
+        <div
+          className="hm-card hm-card-fx hm-soon hm-reveal"
+          style={{ "--d": "1.1s" }}
+          onMouseMove={handleCardMove}
+        >
+          <div className="hm-card-icon">
+            <MessageCircle size={22} />
+          </div>
+          <h3>Your Messages</h3>
+          <p>Your private conversations will appear here.</p>
+          <span className="hm-tag">
+            <Lock size={12} /> Coming soon
+          </span>
+        </div>
+      </section>
 
       <footer className="hm-footer">
-        Be respectful. Harassment results in a disabled account.
+        <Flag size={15} />
+        <span>
+          Be respectful. Harassment gets accounts disabled. Connectly —
+          private, respectful connections.
+        </span>
       </footer>
-    </div>
+    </main>
   );
 }
 
