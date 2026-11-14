@@ -1,3 +1,4 @@
+import "./styles/theme.css";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import {
   BrowserRouter,
