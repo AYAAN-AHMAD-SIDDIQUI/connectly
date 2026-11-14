@@ -1,89 +1,162 @@
-
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
-import { MessageCircle, ShieldCheck, Users } from "lucide-react";
+import { Video, BadgeCheck, Users, Ban } from "lucide-react";
 import { googleLogin } from "../services/authService";
 import "../styles/Login.css";
 
+const APP_NAME = "Connectly";
+
 function Login() {
-  const handleGoogleSuccess = async (credentialResponse) => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSuccess = async (credentialResponse) => {
+    const idToken = credentialResponse?.credential;
+
+    if (!idToken) {
+      setError("Google sign-in did not return a login token. Please try again.");
+      return;
+    }
+
     try {
-      const result = await googleLogin(credentialResponse.credential);
+      setLoading(true);
+      setError("");
 
-      localStorage.setItem("connectly_token", result.token);
-      localStorage.setItem(
-        "connectly_user",
-        JSON.stringify(result.user)
+      const data = await googleLogin(idToken);
+
+      localStorage.setItem("connectly_token", data.token);
+      localStorage.setItem("connectly_user", JSON.stringify(data.user));
+
+      const user = data.user;
+      if (
+        !user.profile_completed ||
+        !user.gender ||
+        !user.is_adult_confirmed
+      ) {
+        navigate("/profile");
+      } else {
+        navigate("/");
+      }
+    } catch (err) {
+      setError(
+        err.response?.data?.message ||
+          "Could not sign you in. Please try again."
       );
-
-      window.location.href = result.user.profile_completed
-        ? "/"
-        : "/profile";
-    } catch (error) {
-      console.error("Login failed:", error);
-      alert(error.response?.data?.message || "Google login failed");
+    } finally {
+      setLoading(false);
     }
   };
 
+  const handleError = () => {
+    setError("Google sign-in failed. Please try again.");
+  };
+
   return (
-    <main className="login-page">
-      <section className="login-card">
-        <div className="brand">
-          <div className="brand-icon">
-            <MessageCircle size={27} />
+    <main className="lg-page">
+      <section className="lg-left">
+        <div className="lg-card">
+          <div className="lg-brand">
+            <span className="lg-logo">
+              <Video size={20} />
+            </span>
+            <span>{APP_NAME}</span>
           </div>
-          <span>Connectly</span>
-        </div>
 
-        <div className="login-content">
-          <span className="eyebrow">YOUR SPACE TO CONNECT</span>
-
-          <h1>Good conversations start here.</h1>
-
-          <p className="description">
-            Connect with people you know through private,
-            invite-based conversations.
+          <h1>Log in to continue</h1>
+          <p className="lg-sub">
+            Meet new people through one-on-one live video, with safety tools
+            built in.
           </p>
 
-          <div className="features">
-            <div>
-              <Users size={19} />
-              <span>Connect with invited people</span>
-            </div>
-
-            <div>
-              <ShieldCheck size={19} />
-              <span>Privacy-focused communication</span>
-            </div>
+          <div className="lg-google">
+            {loading ? (
+              <div className="lg-loading">
+                <span className="lg-spinner" />
+                <div>
+                  <strong>Signing you in...</strong>
+                  <span>
+                    If this is the first visit in a while, the server may
+                    take up to a minute to wake up.
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <GoogleLogin
+                onSuccess={handleSuccess}
+                onError={handleError}
+                theme="filled_black"
+                shape="pill"
+                size="large"
+                text="continue_with"
+                width="320"
+              />
+            )}
           </div>
 
-          <div className="google-login">
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={() => alert("Google Sign-In failed")}
-              theme="outline"
-              size="large"
-              shape="pill"
-              width="300"
-            />
-          </div>
+          {error && <p className="lg-error">{error}</p>}
 
-          <p className="terms">
-            By continuing, you agree to use Connectly respectfully
-            and keep conversations safe.
+          <p className="lg-legal">
+            By continuing, you confirm that you are 18 or older and agree to
+            our{" "}
+            <Link to="/terms" target="_blank" rel="noopener noreferrer">
+              Terms &amp; Conditions
+            </Link>{" "}
+            and{" "}
+            <Link to="/privacy" target="_blank" rel="noopener noreferrer">
+              Privacy Policy
+            </Link>
+            .
           </p>
         </div>
       </section>
 
-      <div className="login-decoration">
-        <div className="decoration-circle circle-one"></div>
-        <div className="decoration-circle circle-two"></div>
-        <div className="decoration-circle circle-three"></div>
-        <div className="decoration-text">
-          <span>CONNECT.</span>
-          <span>COMMUNICATE.</span>
-          <span>STAY CLOSE.</span>
+      <section className="lg-right">
+        <div className="lg-right-inner">
+          <span className="lg-tag">LIVE VIDEO CHAT</span>
+          <h2>Meet someone new, face to face.</h2>
+
+          <ul className="lg-points">
+            <li>
+              <span className="lg-point-icon">
+                <BadgeCheck size={20} />
+              </span>
+              <div>
+                <strong>18+ only</strong>
+                <span>Every member confirms their age.</span>
+              </div>
+            </li>
+            <li>
+              <span className="lg-point-icon">
+                <Users size={20} />
+              </span>
+              <div>
+                <strong>Opposite-gender matching</strong>
+                <span>Always a man and a woman.</span>
+              </div>
+            </li>
+            <li>
+              <span className="lg-point-icon">
+                <Ban size={20} />
+              </span>
+              <div>
+                <strong>Block and report</strong>
+                <span>Skip, block or report in one tap.</span>
+              </div>
+            </li>
+          </ul>
+
+          <div className="lg-preview" aria-hidden="true">
+            <span className="lg-pavatar">A</span>
+            <span className="lg-plink">
+              <span className="lg-ring" />
+              <Video size={18} />
+            </span>
+            <span className="lg-pavatar lg-pavatar-q">?</span>
+          </div>
         </div>
-      </div>
+      </section>
     </main>
   );
 }
