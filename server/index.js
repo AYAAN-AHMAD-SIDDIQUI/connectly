@@ -10,6 +10,7 @@ import authRoutes from "./routes/auth.js";
 import connectionRoutes from "./routes/connections.js";
 import adminRoutes from "./routes/admin.js";
 import { initSocket } from "./socket.js";
+import { authenticate } from "./middleware/auth.js";
 
 dotenv.config({ path: "./server/.env" });
 
@@ -31,6 +32,28 @@ const authLimiter = rateLimit({
   limit: 30,
   standardHeaders: "draft-7",
   legacyHeaders: false
+});
+
+// Return ICE server settings only to authenticated users. TURN credentials are
+// delivered to the browser because WebRTC peers need them to establish relay paths.
+app.get("/ice-config", authenticate, (req, res) => {
+  const username = process.env.METERED_TURN_USERNAME;
+  const credential = process.env.METERED_TURN_CREDENTIAL;
+
+  const iceServers = [{ urls: "stun:stun.l.google.com:19302" }];
+
+  if (username && credential) {
+    iceServers.push({
+      urls: [
+        "turn:global.relay.metered.ca:80",
+        "turn:global.relay.metered.ca:80?transport=tcp"
+      ],
+      username,
+      credential
+    });
+  }
+
+  res.json({ iceServers });
 });
 
 app.get("/health", (req, res) => {
