@@ -15,7 +15,7 @@ import {
 import { connectSocket } from "../services/socket";
 import "../styles/Call.css";
 
-const ICE_SERVERS = [{ urls: "stun:stun.l.google.com:19302" }];
+const FALLBACK_ICE_SERVERS = [{ urls: "stun:stun.l.google.com:19302" }];
 
 const REPORT_REASONS = [
   { value: "inappropriate", label: "Inappropriate behaviour" },
@@ -35,6 +35,7 @@ function Call() {
   const localStreamRef = useRef(null);
   const roomIdRef = useRef(null);
   const pendingCandidatesRef = useRef([]);
+  const iceServersRef = useRef(FALLBACK_ICE_SERVERS);
 
   // idle | searching | connecting | connected
   const [status, setStatus] = useState("idle");
@@ -61,7 +62,7 @@ function Call() {
     closePeer();
     roomIdRef.current = roomId;
 
-    const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+    const pc = new RTCPeerConnection({ iceServers: iceServersRef.current });
     pcRef.current = pc;
 
     localStreamRef.current
@@ -143,6 +144,23 @@ function Call() {
       setStatus("connecting");
       setNotice("");
       setShowReport(false);
+
+      try {
+        const token = localStorage.getItem("connectly_token");
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/ice-config`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (response.ok) {
+          const config = await response.json();
+          if (Array.isArray(config.iceServers) && config.iceServers.length) {
+            iceServersRef.current = config.iceServers;
+          }
+        } else {
+          console.warn("Could not load TURN configuration; using fallback STUN.");
+        }
+      } catch (error) {
+        console.warn("TURN configuration request failed; using fallback STUN.", error);
+      }
 
       const pc = createPeer(roomId);
 
